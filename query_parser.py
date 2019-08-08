@@ -67,21 +67,17 @@ class Query:
 				r'\s*(?P<name>\S+)?',  # "-- :param user_id"
 				line)
 
-			if not m:
-				ast.append(line)
-				continue
-
-			if m['name'] and m['end']:
-				raise AssertionError('`-- :endparam` found with a name')
-
 			if depth < 0:
 				 raise AssertionError('endparam found but not in a param')
 
-			if m['name']:
+			if m and m['name'] and m['end']:
+				raise AssertionError('`-- :endparam` found with a name')
+
+			if m and m['name']:
 				depth += 1
 				buffer[0] = m['name']
 			elif depth:
-				if m['end']:
+				if m and m['end']:
 					buffer[1].append(line)
 					depth -= 1
 					if depth == 0:
@@ -90,8 +86,8 @@ class Query:
 			else:
 				ast.append(line)
 
-#		if depth:
-#			raise AssertionError('EOF seen but there were params open')
+		if depth:
+			raise AssertionError('EOF seen but there were params open')
 
 		return ast
 
