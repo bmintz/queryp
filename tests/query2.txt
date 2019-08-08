@@ -1,0 +1,11 @@
+SELECT *
+FROM users
+--	:param profiles
+LEFT JOIN profiles USING (user_id)
+--		:param login_history
+LEFT JOIN login_history USING (profile_id)
+--		:endparam
+--	:endparam
+--	:param username
+WHERE username = ?
+--	:endparam

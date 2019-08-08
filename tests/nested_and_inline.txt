@@ -1,0 +1,19 @@
+a
+-- :param foo
+	b
+	-- :param bar
+		c
+	-- :endparam
+	d
+	-- :param foo
+		e
+	-- :endparam
+	f
+-- :endparam
+g
+h -- :param baz i
+-- :param foo
+j
+k
+-- :endparam
+l
