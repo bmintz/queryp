@@ -1,12 +1,12 @@
 import io
+import collections
 import re
 import textwrap
 import typing
-from collections import defaultdict
 
 from utils import AttrDict
 
-LineNumber = typing.NewType('LineNumber', int)
+ParamNode = collections.namedtuple('ParamNode', 'name tree')
 
 class Query:
 	"""A pre-processed SQL query.
@@ -46,20 +46,22 @@ class Query:
 		"""convert inline syntax (e.g. "abc -- :param foo bar") with multiline syntax"""
 		out = io.StringIO()
 		for line in self.text.splitlines(keepends=True):
-			m = re.search(r'(.*)?\s*(?P<tag>--\s*?:param\s*?\S+?)\s+(?P<text>\S.*)', line)
-			if m:
-				for group in m.groups():
-					out.write(group)
-					out.write('\n')
-				out.write('-- :endparam\n')
-			else:
+			m = re.search(r'(.*)\s*(?P<tag>--\s*?:param\s*?\S+?)\s+(?P<content>\S.*)', line)
+			if not m:
 				out.write(line)
+				continue
+
+			for group in m.groups():
+				out.write(group)
+				out.write('\n')
+			out.write('-- :endparam\n')
 
 		self.text = out.getvalue()
 
 	def _parse(self, lines):
 		ast = []
-		buffer = [None, []]
+		name = None
+		buffer = []
 		depth = 0
 		for line in lines:
 			m = re.search(
@@ -74,18 +76,17 @@ class Query:
 				raise AssertionError('`-- :endparam` found with a name')
 
 			if depth:
-				buffer[1].append(line)
+				buffer.append(line)
 				if m and m['end']:
 					depth -= 1
 					if depth == 0:
-						print(buffer)
-						ast.append((buffer[0], self._parse(tuple(buffer[1]))))
-						buffer = [None, []]
+						ast.append(ParamNode(name, self._parse(tuple(buffer))))
+						name, buffer = None, []
 				if m and m['name']:
 					depth += 1
 			elif m and m['name']:
 				depth += 1
-				buffer[0] = m['name']
+				name = m['name']
 			else:
 				ast.append(line)
 
@@ -94,7 +95,7 @@ class Query:
 
 		return ast
 
-	def __call__(self, *params):
+	def __call__(self, *params: str):
 		"""return the query as text, including the given params and no others"""
 		params = frozenset(params)
 
@@ -112,7 +113,7 @@ class Query:
 
 	def __repr__(self):
 		shortened = textwrap.shorten('\n'.join(self.text.splitlines()[1:]), 50)
-		return f'{type(self).__qualname__}(name={self.name!r}, text={shortened!r})'
+		return '{0.__class__.__qualname__}(name={0.name!r}, text={1!r})'.format(self, shortened)
 
 
 def load_sql(fp):
