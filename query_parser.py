@@ -39,9 +39,8 @@ class Query:
 
 		self.name = name
 		self.text = text
-		self.params = defaultdict(list)
 		self._replace_inline_syntax()
-		self._parse()
+		self.params = self._parse(self.text.splitlines())
 
 	def _replace_inline_syntax(self):
 		"""convert inline syntax (e.g. "abc -- :param foo bar") with multiline syntax"""
@@ -51,52 +50,49 @@ class Query:
 			if m:
 				for group in m.groups():
 					out.write(group)
+					out.write('\n')
 				out.write('-- :endparam\n')
 			else:
 				out.write(line)
 
 		self.text = out.getvalue()
 
-	def _parse(self):
-		stack = []
-		current_param: List[LineNumber] = []
-		for lineno, line in enumerate(self.text.splitlines()):
+	def _parse(self, lines):
+		ast = []
+		buffer = [None, []]
+		depth = 0
+		for line in lines:
 			m = re.search(
 				r'--\s*?:(?P<end>end)??param'  # "-- :param" or "-- :endparam"
 				r'\s*(?P<name>\S+)?',  # "-- :param user_id"
 				line)
 
-			# if we're in a param, append all linenos up until the start of another one
-			if stack and not (m and m['name']):
-				current_param.append(lineno)
-
-			if not m:  # nothing more we can do
+			if not m:
+				buffer[1].append(line)
 				continue
 
-			if m['end'] and m['name']:
+			if m['name'] and m['end']:
 				raise AssertionError('`-- :endparam` found with a name')
 
-			# we have a valid match, either it's a start tag:
+			if depth < 0:
+				 raise AssertionError('endparam found but not in a param')
+
 			if m['name']:
-				if stack:
-					# start of a new param means we need the linenos from the previous one too (if there was one)
-					self.params[stack[-1]].extend(current_param)
-					current_param.clear()
-				stack.append(m['name'])
-				current_param.append(lineno)
-			# or an end tag:
-			if m['end']:
-				try:
-					self.params[stack.pop()].extend(current_param)
-				except IndexError as exc:
-					raise AssertionError('endparam found but not in a param', lineno)
-				current_param.clear()
+				depth += 1
+				buffer[0] = m['name']
+			if depth:
+				buffer[1].append(line)
+				if m['end']:
+					depth -= 1
+					if depth == 0:
+						ast.append((buffer[0], self._parse(buffer[1])))
+			else:
+				ast.append(line)
 
-		if stack:
-			raise AssertionError('EOF seen but there were params open', stack)
+#		if depth:
+#			raise AssertionError('EOF seen but there were params open')
 
-		# no more defaultdict
-		self.params = dict(self.params)
+		return ast
 
 	def __call__(self, *params):
 		"""return the query as text, including the given params and no others"""
