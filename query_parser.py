@@ -73,16 +73,17 @@ class Query:
 			if m and m['name'] and m['end']:
 				raise AssertionError('`-- :endparam` found with a name')
 
-			if m and m['name']:
-				depth += 1
-				buffer[0] = m['name']
-			elif depth:
+			if depth:
+				buffer[1].append(line)
 				if m and m['end']:
-					buffer[1].append(line)
 					depth -= 1
 					if depth == 0:
 						print(buffer)
 						ast.append((buffer[0], self._parse(tuple(buffer[1]))))
+						buffer = [None, []]
+			elif m and m['name']:
+				depth += 1
+				buffer[0] = m['name']
 			else:
 				ast.append(line)
 
@@ -121,7 +122,7 @@ def load_sql(fp):
 		if match:
 			current_tag = match[1]
 		if current_tag:
-			queries.__dict__.setdefault(current_tag, []).append(line)
+			vars(queries).setdefault(current_tag, []).append(line)
 
 	for tag, query in vars(queries).items():
 		queries[tag] = Query(tag, ''.join(query))
