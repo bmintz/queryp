@@ -68,7 +68,7 @@ class Query:
 				line)
 
 			if not m:
-				buffer[1].append(line)
+				ast.append(line)
 				continue
 
 			if m['name'] and m['end']:
@@ -80,12 +80,13 @@ class Query:
 			if m['name']:
 				depth += 1
 				buffer[0] = m['name']
-			if depth:
-				buffer[1].append(line)
+			elif depth:
 				if m['end']:
+					buffer[1].append(line)
 					depth -= 1
 					if depth == 0:
-						ast.append((buffer[0], self._parse(buffer[1])))
+						print(buffer)
+						ast.append((buffer[0], self._parse(tuple(buffer[1]))))
 			else:
 				ast.append(line)
 
