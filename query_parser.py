@@ -81,6 +81,8 @@ class Query:
 						print(buffer)
 						ast.append((buffer[0], self._parse(tuple(buffer[1]))))
 						buffer = [None, []]
+				if m and m['name']:
+					depth += 1
 			elif m and m['name']:
 				depth += 1
 				buffer[0] = m['name']
