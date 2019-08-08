@@ -2,7 +2,6 @@ import io
 import collections
 import re
 import textwrap
-import typing
 
 from utils import AttrDict
 
@@ -70,7 +69,7 @@ class Query:
 				line)
 
 			if depth < 0:
-				 raise AssertionError('endparam found but not in a param')
+				raise AssertionError('endparam found but not in a param')
 
 			if m and m['name'] and m['end']:
 				raise AssertionError('`-- :endparam` found with a name')
@@ -101,7 +100,7 @@ class Query:
 
 		def gen(tree):
 			for node in tree:
-				if type(node) is str:
+				if type(node) is str:  # pylint: disable=unidiomatic-typecheck
 					yield node
 					continue
 
