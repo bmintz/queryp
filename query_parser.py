@@ -40,7 +40,7 @@ class Query:
 		self.name = name
 		self.text = text
 		self._replace_inline_syntax()
-		self.params = self._parse(self.text.splitlines())
+		self.tree = self._parse(self.text.splitlines())
 
 	def _replace_inline_syntax(self):
 		"""convert inline syntax (e.g. "abc -- :param foo bar") with multiline syntax"""
@@ -94,14 +94,19 @@ class Query:
 
 	def __call__(self, *params):
 		"""return the query as text, including the given params and no others"""
-		unwanted = set(self.params) - set(params)
-		lines = self.text.splitlines()
-		linenos = []
-		for query_linenos in map(self.params.get, unwanted):
-			linenos.extend(query_linenos)
-		for lineno in sorted(linenos, reverse=True):
-			del lines[lineno]
-		return '\n'.join(lines)
+		params = frozenset(params)
+
+		def gen(tree):
+			for node in tree:
+				if type(node) is str:
+					yield node
+					continue
+
+				param, tree = node
+				if param in params:
+					yield from gen(tree)
+
+		return '\n'.join(gen(self.tree))
 
 	def __repr__(self):
 		shortened = textwrap.shorten('\n'.join(self.text.splitlines()[1:]), 50)
