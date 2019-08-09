@@ -78,12 +78,12 @@ class Query:
 				r'\s*(?P<name>\S+)?',  # "-- :param user_id"
 				line)
 
-			if depth < 0 or not depth and m and m['end']:
+			if depth < 0 or not depth and m and m.group('end'):
 				raise QuerySyntaxError('endparam found but not in a param', line)
 
 			if depth:
 				buffer.append(line)
-				if m and m['end']:
+				if m and m.group('end'):
 					depth -= 1
 					if not depth:
 						# we've gathered all the lines for this param, so it's time to parse them
@@ -91,11 +91,11 @@ class Query:
 						without_tags = buffer[1:-1]
 						ast.append((name, [buffer[0]] + cls._parse(without_tags) + [buffer[-1]]))
 						name, buffer = None, []
-				elif m and m['name']:  # start of param
+				elif m and m.group('name'):  # start of param
 					depth += 1
-			elif m and m['name']:  # start of param
+			elif m and m.group('name'):  # start of param
 				depth += 1  # this depth += 1 is duplicated so that depth is incremented regardless of current depth
-				name = m['name']
+				name = m.group('name')
 				buffer.append(line)
 			else:  # top level line (outside of a param)
 				ast.append(line)

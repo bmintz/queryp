@@ -11,3 +11,4 @@ no-space-check=
 disable=
 	bad-continuation,
 	missing-docstring,
+	redefined-builtin,  # they're not keywords, after all...

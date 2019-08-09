@@ -1,3 +1,5 @@
+import builtins
+import sys
 from pathlib import Path
 
 import pytest
@@ -5,6 +7,10 @@ import pytest
 from querypp import Query, QuerySyntaxError, load_sql
 
 TESTS_DIR = Path(__file__).parent / 'tests'
+
+if sys.version_info <= (3, 5):
+	# py 3.5 does not support opening Paths
+	open = lambda file, **kwargs: builtins.open(str(file), **kwargs)  # pylint: disable=invalid-name
 
 def test_no_params():
 	with open(TESTS_DIR / 'no_params.txt') as f:
@@ -42,6 +48,7 @@ def test_invalid_syntax():
 def test_inline():
 	...  # TODO
 
+# pylint: disable=no-member
 def test_load_sql():
 	with open(TESTS_DIR / 'multi.txt') as f:
 		queries = load_sql(f)
