@@ -98,6 +98,7 @@ class Query:
 
 		return ast
 
+	# pylint: disable=too-many-arguments
 	@classmethod
 	def _parse_param_line(cls, ast, name, buffer, depth, m, line):
 		buffer.append(line)
