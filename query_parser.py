@@ -37,8 +37,7 @@ class Query:
 			raise TypeError('__init__ takes 0 to 2 positional arguments but {} were given'.format(len(args)))
 
 		self.name = name
-		self.text = text
-		self._replace_inline_syntax()
+		self._replace_inline_syntax(text)
 		self.tree = self._parse(self.text.splitlines())
 
 	def _replace_inline_syntax(self):
@@ -59,7 +58,7 @@ class Query:
 				out.write('\n')
 			out.write('-- :endparam\n')
 
-		self.text = out.getvalue()
+		return out.getvalue()
 
 	def _parse(self, lines):
 		ast = []
