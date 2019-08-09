@@ -84,17 +84,7 @@ class Query:
 				raise QuerySyntaxError('endparam found but not in a param', line)
 
 			if depth:
-				buffer.append(line)
-				if m and m.group('end'):
-					depth -= 1
-					if not depth:
-						# we've gathered all the lines for this param, so it's time to parse them
-						# don't send the tags to the recursive call or it'll try to parse them again
-						without_tags = buffer[1:-1]
-						ast.append((name, [buffer[0]] + cls._parse(without_tags) + [buffer[-1]]))
-						name, buffer = None, []
-				elif m and m.group('name'):  # start of param
-					depth += 1
+				name, buffer, depth = cls._parse_param_line(ast, name, buffer, depth, m, line)
 			elif m and m.group('name'):  # start of param
 				depth += 1  # this depth += 1 is duplicated so that depth is incremented regardless of current depth
 				name = m.group('name')
@@ -107,6 +97,22 @@ class Query:
 			raise QuerySyntaxError('EOF seen but there were params open', line, name)
 
 		return ast
+
+	@classmethod
+	def _parse_param_line(cls, ast, name, buffer, depth, m, line):
+		buffer.append(line)
+		if m and m.group('end'):
+			depth -= 1
+			if not depth:
+				# we've gathered all the lines for this param, so it's time to parse them
+				# don't send the tags to the recursive call or it'll try to parse them again
+				without_tags = buffer[1:-1]
+				ast.append((name, [buffer[0]] + cls._parse(without_tags) + [buffer[-1]]))
+				name, buffer = None, []
+		elif m and m.group('name'):  # start of param
+			depth += 1
+
+		return name, buffer, depth
 
 	def __call__(self, *params: str):
 		"""return the query as text, including the given params and no others"""
