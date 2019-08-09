@@ -32,7 +32,7 @@ In this case, `q('profiles', 'user_id')` would return the query with the `login_
 ## Motivation
 
 After moving all my SQL queries to separate files (using the load_sql function),
-I noticed that some of them were being duplicated except for one extra clause.
+I noticed that I was duplicating some of them except for one extra clause.
 I created this to allow me to deduplicate such queries.
 
 ## License
