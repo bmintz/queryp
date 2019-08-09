@@ -7,6 +7,7 @@ from utils import AttrDict
 
 ParamNode = collections.namedtuple('ParamNode', 'name tree')
 
+# pylint: disable=unidiomatic-typecheck
 class Query:
 	"""A pre-processed SQL query.
 
@@ -37,13 +38,15 @@ class Query:
 			raise TypeError('__init__ takes 0 to 2 positional arguments but {} were given'.format(len(args)))
 
 		self.name = name
-		self._replace_inline_syntax(text)
+		self.text = self.replace_inline_syntax(text)
 		self.tree = self._parse(self.text.splitlines())
+		self.params = frozenset(self._extract_params(self.tree))
 
-	def _replace_inline_syntax(self):
+	@staticmethod
+	def replace_inline_syntax(text):
 		"""convert inline syntax (e.g. "abc -- :param foo def") with multiline syntax"""
 		out = io.StringIO()
-		for line in self.text.splitlines(keepends=True):
+		for line in text.splitlines(keepends=True):
 			m = re.search(
 				r'(.*)'
 				r'\s*(?P<tag>--\s*?:param\s+?\S+?)'
@@ -60,7 +63,8 @@ class Query:
 
 		return out.getvalue()
 
-	def _parse(self, lines):
+	@classmethod
+	def _parse(cls, lines):
 		ast = []
 		name = None
 		buffer = []
@@ -85,7 +89,7 @@ class Query:
 						# we've gathered all the lines for this param, so it's time to parse them
 						# don't send the tags to the recursive call or it'll try to parse them again
 						without_tags = buffer[1:-1]
-						ast.append((name, [buffer[0]] + self._parse(without_tags) + [buffer[-1]]))
+						ast.append((name, [buffer[0]] + cls._parse(without_tags) + [buffer[-1]]))
 						name, buffer = None, []
 				if m and m['name']:  # start of param
 					depth += 1
@@ -107,7 +111,7 @@ class Query:
 
 		def gen(tree):
 			for node in tree:
-				if type(node) is str:  # pylint: disable=unidiomatic-typecheck
+				if type(node) is str:
 					yield node
 					continue
 

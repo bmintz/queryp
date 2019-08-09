@@ -1,7 +1,8 @@
-import inspect
 from pathlib import Path
 
-from query_parser import Query
+import pytest
+
+from querypp import Query
 
 TESTS_DIR = Path(__file__).parent / 'tests'
 

@@ -1,17 +1,13 @@
-[SPELLING]
-good-names = 
-	i,
-	j,
-	k,
-	m,
-	fp,
+[VARIABLES]
+# allow single-letter var names
+variable-rgx=\w+
 
 [FORMAT]
-max-line-length = 120
+max-line-length=120
 indent-string=\t
 no-space-check=
 
 [MESSAGES CONTROL]
-disable =
+disable=
 	bad-continuation,
 	missing-docstring,
