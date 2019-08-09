@@ -24,7 +24,7 @@ def test_nested():
 
 	cases = []
 	for param in params:
-		with open(TESTS_DIR / 'nested' / f'expected_{param}.txt') as f:
+		with open(TESTS_DIR / 'nested' / 'expected_{}.txt'.format(param)) as f:
 			cases.append((param, f.read().strip()))
 
 	for param, expected in cases:
