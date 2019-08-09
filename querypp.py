@@ -41,12 +41,12 @@ class Query:
 			raise TypeError('__init__ takes 0 to 2 positional arguments but {} were given'.format(len(args)))
 
 		self.name = name
-		self.text = self.replace_inline_syntax(text)
+		self.text = self._replace_inline_syntax(text)
 		self.tree = self._parse(self.text.splitlines())
 		self.params = frozenset(self._extract_params(self.tree))
 
 	@staticmethod
-	def replace_inline_syntax(text):
+	def _replace_inline_syntax(text):
 		"""convert inline syntax (e.g. "abc -- :param foo def") with multiline syntax"""
 		out = io.StringIO()
 		for line in text.splitlines(keepends=True):

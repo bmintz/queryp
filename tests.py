@@ -46,7 +46,10 @@ def test_invalid_syntax():
 		Query('-- :param foo\n--:param bar\n-- :endparam')
 
 def test_inline():
-	...  # TODO
+	q = Query('-- :param username WHERE username = $1')
+	assert not q().strip()
+	assert len(q.params) == 1
+	assert 'WHERE username = $1' in q('username').splitlines()
 
 # pylint: disable=no-member
 def test_load_sql():
@@ -90,3 +93,7 @@ def test_param_arg_validation():
 
 	with pytest.raises(ValueError):
 		q('baz')
+
+def test_repr():
+	q = Query('', '')
+	assert repr(q) == "Query(name='', text='')"
