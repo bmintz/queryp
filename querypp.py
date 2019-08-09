@@ -1,12 +1,11 @@
 import io
+import collections
 import re
 import textwrap
-import typing
-from collections import defaultdict
 
 from utils import AttrDict
 
-LineNumber = typing.NewType('LineNumber', int)
+ParamNode = collections.namedtuple('ParamNode', 'name tree')
 
 class Query:
 	"""A pre-processed SQL query.
@@ -38,80 +37,89 @@ class Query:
 			raise TypeError('__init__ takes 0 to 2 positional arguments but {} were given'.format(len(args)))
 
 		self.name = name
-		self.text = text
-		self.params = defaultdict(list)
-		self._replace_inline_syntax()
-		self._parse()
+		self._replace_inline_syntax(text)
+		self.tree = self._parse(self.text.splitlines())
 
 	def _replace_inline_syntax(self):
-		"""convert inline syntax (e.g. "abc -- :param foo bar") with multiline syntax"""
+		"""convert inline syntax (e.g. "abc -- :param foo def") with multiline syntax"""
 		out = io.StringIO()
 		for line in self.text.splitlines(keepends=True):
-			m = re.search(r'(.*)?\s*(?P<tag>--\s*?:param\s*?\S+?)\s+(?P<text>\S.*)', line)
-			if m:
-				for group in m.groups():
-					out.write(group)
-				out.write('-- :endparam\n')
-			else:
+			m = re.search(
+				r'(.*)'
+				r'\s*(?P<tag>--\s*?:param\s+?\S+?)'
+				r'\s+(?P<content>\S.*)',
+				line)
+			if not m:
 				out.write(line)
+				continue
 
-		self.text = out.getvalue()
+			for group in m.groups():
+				out.write(group)
+				out.write('\n')
+			out.write('-- :endparam\n')
 
-	def _parse(self):
-		stack = []
-		current_param: List[LineNumber] = []
-		for lineno, line in enumerate(self.text.splitlines()):
+		return out.getvalue()
+
+	def _parse(self, lines):
+		ast = []
+		name = None
+		buffer = []
+		depth = 0
+		for line in lines:
 			m = re.search(
 				r'--\s*?:(?P<end>end)??param'  # "-- :param" or "-- :endparam"
 				r'\s*(?P<name>\S+)?',  # "-- :param user_id"
 				line)
 
-			# if we're in a param, append all linenos up until the start of another one
-			if stack and not (m and m['name']):
-				current_param.append(lineno)
+			if depth < 0:
+				raise AssertionError('endparam found but not in a param')
 
-			if not m:  # nothing more we can do
-				continue
-
-			if m['end'] and m['name']:
+			if m and m['name'] and m['end']:
 				raise AssertionError('`-- :endparam` found with a name')
 
-			# we have a valid match, either it's a start tag:
-			if m['name']:
-				if stack:
-					# start of a new param means we need the linenos from the previous one too (if there was one)
-					self.params[stack[-1]].extend(current_param)
-					current_param.clear()
-				stack.append(m['name'])
-				current_param.append(lineno)
-			# or an end tag:
-			if m['end']:
-				try:
-					self.params[stack.pop()].extend(current_param)
-				except IndexError as exc:
-					raise AssertionError('endparam found but not in a param', lineno)
-				current_param.clear()
+			if depth:
+				buffer.append(line)
+				if m and m['end']:
+					depth -= 1
+					if not depth:
+						# we've gathered all the lines for this param, so it's time to parse them
+						# don't send the tags to the recursive call or it'll try to parse them again
+						without_tags = buffer[1:-1]
+						ast.append((name, [buffer[0]] + self._parse(without_tags) + [buffer[-1]]))
+						name, buffer = None, []
+				if m and m['name']:  # start of param
+					depth += 1
+			elif m and m['name']:  # start of param
+				depth += 1  # this depth += 1 is duplicated so that depth is incremented regardless of current depth
+				name = m['name']
+				buffer.append(line)
+			else:  # top level line (outside of a param)
+				ast.append(line)
 
-		if stack:
-			raise AssertionError('EOF seen but there were params open', stack)
+		if depth:
+			raise AssertionError('EOF seen but there were params open')
 
-		# no more defaultdict
-		self.params = dict(self.params)
+		return ast
 
-	def __call__(self, *params):
+	def __call__(self, *params: str):
 		"""return the query as text, including the given params and no others"""
-		unwanted = set(self.params) - set(params)
-		lines = self.text.splitlines()
-		linenos = []
-		for query_linenos in map(self.params.get, unwanted):
-			linenos.extend(query_linenos)
-		for lineno in sorted(linenos, reverse=True):
-			del lines[lineno]
-		return '\n'.join(lines)
+		params = frozenset(params)
+
+		def gen(tree):
+			for node in tree:
+				if type(node) is str:  # pylint: disable=unidiomatic-typecheck
+					yield node
+					continue
+
+				param, tree = node
+				if param in params:
+					yield from gen(tree)
+
+		return '\n'.join(gen(self.tree))
 
 	def __repr__(self):
 		shortened = textwrap.shorten('\n'.join(self.text.splitlines()[1:]), 50)
-		return f'{type(self).__qualname__}(name={self.name!r}, text={shortened!r})'
+		return '{0.__class__.__qualname__}(name={0.name!r}, text={1!r})'.format(self, shortened)
 
 
 def load_sql(fp):
@@ -128,7 +136,7 @@ def load_sql(fp):
 		if match:
 			current_tag = match[1]
 		if current_tag:
-			queries.__dict__.setdefault(current_tag, []).append(line)
+			vars(queries).setdefault(current_tag, []).append(line)
 
 	for tag, query in vars(queries).items():
 		queries[tag] = Query(tag, ''.join(query))
