@@ -45,7 +45,7 @@ class Query:
 		"""convert inline syntax (e.g. "abc -- :param foo bar") with multiline syntax"""
 		out = io.StringIO()
 		for line in self.text.splitlines(keepends=True):
-			m = re.search(r'(.*)\s*(?P<tag>--\s*?:param\s*?\S+?)\s+(?P<content>\S.*)', line)
+			m = re.search(r'(.*)\s*(?P<tag>--\s*?:param\s+?\S+?)\s+(?P<content>\S.*)', line)
 			if not m:
 				out.write(line)
 				continue
