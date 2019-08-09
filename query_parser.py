@@ -79,13 +79,15 @@ class Query:
 				if m and m['end']:
 					depth -= 1
 					if depth == 0:
-						ast.append(ParamNode(name, self._parse(tuple(buffer))))
+						without_tags = buffer[1:-1]
+						ast.append((name, [buffer[0]] + self._parse(without_tags) + [buffer[-1]]))
 						name, buffer = None, []
 				if m and m['name']:
 					depth += 1
 			elif m and m['name']:
 				depth += 1
 				name = m['name']
+				buffer.append(line)
 			else:
 				ast.append(line)
 
