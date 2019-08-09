@@ -1,11 +1,12 @@
 dist: bionic
 language: python
 python:
+  - 3.5
   - 3.6
   - 3.7
   - 3.8-dev
 script:
   - pip install coveralls pytest pytest-cov
-  - pytest tests.py --cov querypp --cov-report html
+  - pytest tests.py --cov querypp
 after_script:
   - coveralls
