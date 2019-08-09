@@ -107,6 +107,13 @@ class Query:
 
 	def __call__(self, *params: str):
 		"""return the query as text, including the given params and no others"""
+
+		for param in params:
+			if not isinstance(param, str):
+				raise TypeError('parameter name must be a string', repr(param))
+			if param not in self.params:
+				raise ValueError('param not valid', param)
+
 		params = frozenset(params)
 
 		def gen(tree):
@@ -120,6 +127,16 @@ class Query:
 					yield from gen(tree)
 
 		return '\n'.join(gen(self.tree))
+
+	@classmethod
+	def _extract_params(cls, tree):
+		for node in tree:
+			if type(node) is str:
+				continue
+
+			param, tree = node
+			yield param
+			yield from cls._extract_params(tree)
 
 	def __repr__(self):
 		shortened = textwrap.shorten('\n'.join(self.text.splitlines()[1:]), 50)
