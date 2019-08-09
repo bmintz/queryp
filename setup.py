@@ -17,7 +17,7 @@ setup(
 	name='querypp',
 	version=version,
 
-	description='Parses a superset of Python allowing for inline module import ex',
+	description='preprocesses SQL queries to make them modular',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
 
