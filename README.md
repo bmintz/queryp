@@ -37,4 +37,4 @@ I created this to allow me to deduplicate such queries.
 
 ## License
 
-Public domain, see [COPYING](/COPYING)
+Public domain, see [COPYING](https://github.com/bmintz/querypp/blob/master/COPYING)
