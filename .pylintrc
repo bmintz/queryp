@@ -1,6 +1,7 @@
 [VARIABLES]
 # allow single-letter var names
 variable-rgx=\w+
+argument-rgx=\w+
 
 [FORMAT]
 max-line-length=120

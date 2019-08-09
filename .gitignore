@@ -7,3 +7,9 @@ htmlcov/
 
 # pylint
 .python-version
+
+# pip shit
+*.whl
+*.egg-info/
+/build/
+/dist/

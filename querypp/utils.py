@@ -1,5 +1,3 @@
-import reprlib
-
 # this does not extend dict so that public method names, such as "clear"
 # which may be desirable as keys, are not dispatched to the dict class
 class AttrDict:
@@ -30,6 +28,5 @@ class AttrDict:
 	def __eq__(self, other):
 		return vars(self) == vars(other)
 
-	@reprlib.recursive_repr
 	def __repr__(self):
 		return '{}({})'.format(type(self).__qualname__, vars(self))

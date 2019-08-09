@@ -1,9 +1,11 @@
-import io
 import collections
+import io
 import re
 import textwrap
 
-from utils import AttrDict
+from .utils import AttrDict
+
+__version__ = '0.0.1'
 
 ParamNode = collections.namedtuple('ParamNode', 'name tree')
 
@@ -101,6 +103,7 @@ class Query:
 				ast.append(line)
 
 		if depth:
+			# pylint: disable=undefined-loop-variable  # depth > 0 only if the loop ran
 			raise QuerySyntaxError('EOF seen but there were params open', line, name)
 
 		return ast
