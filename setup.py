@@ -31,6 +31,8 @@ setup(
 
 	extras_require={
 		'test': [
+			'isort',
+			'pylint',
 			'pytest',
 			'pytest-cov',
 		],
