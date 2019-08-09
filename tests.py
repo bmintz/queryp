@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from querypp import Query, QuerySyntaxError
+from querypp import Query, QuerySyntaxError, load_sql
 
 TESTS_DIR = Path(__file__).parent / 'tests'
 
@@ -39,9 +39,16 @@ def test_invalid_syntax():
 		Query('-- :param foo')
 		Query('-- :param foo\n--:param bar\n-- :endparam')
 
-
 def test_inline():
 	...  # TODO
+
+def test_load_sql():
+	with open(TESTS_DIR / 'multi.txt') as f:
+		queries = load_sql(f)
+
+	assert len(queries) == 2
+	assert queries.a().strip() == '\n'.join(['-- :name a', 'foo', 'bar', 'baz'])
+	assert queries.b().strip() == '\n'.join(['-- :name b', 'quux', 'garply', 'waldo'])
 
 def test_arg_parsing():
 	q = Query('foo', 'bar')
