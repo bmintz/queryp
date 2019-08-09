@@ -12,5 +12,6 @@ script:
   - pytest tests.py --cov querypp --cov-report term-missing:skip-covered --cov-branch
   - pylint querypp
   - isort . --check-only --recursive
+  - ./setup.py sdist bdist_wheel
 after_script:
   - coveralls
