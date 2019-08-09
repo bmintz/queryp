@@ -42,10 +42,14 @@ class Query:
 		self.tree = self._parse(self.text.splitlines())
 
 	def _replace_inline_syntax(self):
-		"""convert inline syntax (e.g. "abc -- :param foo bar") with multiline syntax"""
+		"""convert inline syntax (e.g. "abc -- :param foo def") with multiline syntax"""
 		out = io.StringIO()
 		for line in self.text.splitlines(keepends=True):
-			m = re.search(r'(.*)\s*(?P<tag>--\s*?:param\s+?\S+?)\s+(?P<content>\S.*)', line)
+			m = re.search(
+				r'(.*)'
+				r'\s*(?P<tag>--\s*?:param\s+?\S+?)'
+				r'\s+(?P<content>\S.*)',
+				line)
 			if not m:
 				out.write(line)
 				continue
@@ -78,17 +82,19 @@ class Query:
 				buffer.append(line)
 				if m and m['end']:
 					depth -= 1
-					if depth == 0:
+					if not depth:
+						# we've gathered all the lines for this param, so it's time to parse them
+						# don't send the tags to the recursive call or it'll try to parse them again
 						without_tags = buffer[1:-1]
 						ast.append((name, [buffer[0]] + self._parse(without_tags) + [buffer[-1]]))
 						name, buffer = None, []
-				if m and m['name']:
+				if m and m['name']:  # start of param
 					depth += 1
-			elif m and m['name']:
-				depth += 1
+			elif m and m['name']:  # start of param
+				depth += 1  # this depth += 1 is duplicated so that depth is incremented regardless of current depth
 				name = m['name']
 				buffer.append(line)
-			else:
+			else:  # top level line (outside of a param)
 				ast.append(line)
 
 		if depth:
