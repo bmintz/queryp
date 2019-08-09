@@ -31,6 +31,9 @@ def test_nested():
 		print(param)  # in case one fails we wanna see which one
 		assert q(param).strip() == expected
 
+def test_inline():
+	...  # TODO
+
 def test_arg_parsing():
 	q = Query('foo', 'bar')
 	assert q.name == 'foo'
