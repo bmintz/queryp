@@ -5,7 +5,7 @@ import textwrap
 
 from .utils import AttrDict
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 ParamNode = collections.namedtuple('ParamNode', 'name tree')
 
