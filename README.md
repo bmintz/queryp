@@ -1,6 +1,6 @@
 # querypp
 
-[![Build Status](https://img.shields.io/travis/bmintz/querypp/master.svg?label=tests)](https://travis-ci.org/bmintz/querypp)
+[![Build Status](https://travis-ci.org/bmintz/querypp.svg?branch=master)](https://travis-ci.org/bmintz/querypp)
 [![Coverage Status](https://coveralls.io/repos/github/bmintz/querypp/badge.svg?branch=master)](https://coveralls.io/github/bmintz/querypp?branch=master)
 
 querypp preprocesses SQL queries[1] in order to "parameterize" them. It also includes a loader which loads many queries
