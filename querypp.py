@@ -7,6 +7,9 @@ from utils import AttrDict
 
 ParamNode = collections.namedtuple('ParamNode', 'name tree')
 
+class QuerySyntaxError(Exception):
+	pass
+
 # pylint: disable=unidiomatic-typecheck
 class Query:
 	"""A pre-processed SQL query.
@@ -75,11 +78,8 @@ class Query:
 				r'\s*(?P<name>\S+)?',  # "-- :param user_id"
 				line)
 
-			if depth < 0:
-				raise AssertionError('endparam found but not in a param')
-
-			if m and m['name'] and m['end']:
-				raise AssertionError('`-- :endparam` found with a name')
+			if depth < 0 or not depth and m and m['end']:
+				raise QuerySyntaxError('endparam found but not in a param', line)
 
 			if depth:
 				buffer.append(line)
@@ -91,7 +91,7 @@ class Query:
 						without_tags = buffer[1:-1]
 						ast.append((name, [buffer[0]] + cls._parse(without_tags) + [buffer[-1]]))
 						name, buffer = None, []
-				if m and m['name']:  # start of param
+				elif m and m['name']:  # start of param
 					depth += 1
 			elif m and m['name']:  # start of param
 				depth += 1  # this depth += 1 is duplicated so that depth is incremented regardless of current depth
@@ -101,7 +101,7 @@ class Query:
 				ast.append(line)
 
 		if depth:
-			raise AssertionError('EOF seen but there were params open')
+			raise QuerySyntaxError('EOF seen but there were params open', line, name)
 
 		return ast
 

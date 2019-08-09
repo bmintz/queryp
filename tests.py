@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from querypp import Query
+from querypp import Query, QuerySyntaxError
 
 TESTS_DIR = Path(__file__).parent / 'tests'
 
@@ -30,6 +30,15 @@ def test_nested():
 	for param, expected in cases:
 		print(param)  # in case one fails we wanna see which one
 		assert q(param).strip() == expected
+
+def test_invalid_syntax():
+	with pytest.raises(QuerySyntaxError, match='endparam found but not in a param'):
+		Query('-- :endparam')
+
+	with pytest.raises(QuerySyntaxError, match='EOF seen but there were params open'):
+		Query('-- :param foo')
+		Query('-- :param foo\n--:param bar\n-- :endparam')
+
 
 def test_inline():
 	...  # TODO
