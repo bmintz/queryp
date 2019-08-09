@@ -2,6 +2,9 @@ a
 -- :param foo
 	b
 	d
+	-- :param foo
+		e
+	-- :endparam
 	f
 -- :endparam
 g

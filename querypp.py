@@ -34,7 +34,7 @@ class Query:
 			text = args[0]
 		elif len(args) == 2:
 			name, text = args
-		else:
+		elif args:
 			raise TypeError('__init__ takes 0 to 2 positional arguments but {} were given'.format(len(args)))
 
 		self.name = name
