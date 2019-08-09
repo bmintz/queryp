@@ -9,7 +9,9 @@ jobs:
     - python: 3.5
       dist: xenial
 script:
-  - pip install coveralls pytest pytest-cov
-  - pytest tests.py --cov querypp --cov-report term-missing:skip-covered
+  - pip install coveralls isort pylint pytest pytest-cov
+  - pytest tests.py --cov querypp --cov-report term-missing:skip-covered --cov-branch
+  - pylint querypp
+  - isort . --check-only --recursive
 after_script:
   - coveralls

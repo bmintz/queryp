@@ -60,6 +60,9 @@ def test_load_sql():
 	assert queries.a().strip() == '\n'.join(['-- :name a', 'foo', 'bar', 'baz'])
 	assert queries.b().strip() == '\n'.join(['-- :name b', 'quux', 'garply', 'waldo'])
 
+	# necesssary to get 100% branch coverage
+	assert not load_sql(iter(['']))
+
 def test_arg_parsing():
 	q = Query('foo', 'bar')
 	assert q.name == 'foo'
