@@ -51,6 +51,9 @@ def test_arg_parsing():
 	with pytest.raises(TypeError):
 		Query('fred', name='shit i ran out of names')
 
+	with pytest.raises(TypeError):
+		Query('a', 'b', 'c')
+
 def test_param_arg_validation():
 	with open(TESTS_DIR / 'nested' / 'query.txt') as f:
 		text = f.read()
