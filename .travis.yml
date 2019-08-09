@@ -6,6 +6,6 @@ python:
   - 3.8-dev
 script:
   - pip install coveralls pytest pytest-cov
-  - ./setup.py test
+  - pytest tests.py --cov querypp --cov-report html
 after_script:
   - coveralls
