@@ -10,6 +10,6 @@ jobs:
       dist: xenial
 script:
   - pip install coveralls pytest pytest-cov
-  - pytest tests.py --cov querypp
+  - pytest tests.py --cov querypp --cov-report term-missing:skip-covered
 after_script:
   - coveralls
