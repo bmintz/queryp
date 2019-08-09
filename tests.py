@@ -8,7 +8,7 @@ from querypp import Query, QuerySyntaxError, load_sql
 
 TESTS_DIR = Path(__file__).parent / 'tests'
 
-if sys.version_info <= (3, 5):
+if sys.version_info < (3, 6):
 	# py 3.5 does not support opening Paths
 	open = lambda file, **kwargs: builtins.open(str(file), **kwargs)  # pylint: disable=invalid-name
 
