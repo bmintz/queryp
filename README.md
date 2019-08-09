@@ -24,8 +24,8 @@ LEFT JOIN login_history USING (profile_id)
 ```
 
 A Query object can be called:
-	- with no parameters to return the entire query
-	- with one or more parameters to return the query with only those parameters.
+  - with no parameters to return the entire query
+  - with one or more parameters to return the query with only those parameters.
 
 In this case, `q('profiles', 'user_id')` would return the query with the `login_history` JOIN removed.
 
