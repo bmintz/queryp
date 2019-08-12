@@ -3,7 +3,7 @@ g
 h
 i
 l
--- :param bar
+-- :block bar
 	m
--- :endparam
+-- :endblock
 n

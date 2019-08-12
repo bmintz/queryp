@@ -19,6 +19,9 @@ class AttrDict:
 		except AttributeError:
 			raise KeyError(key)
 
+	def __iter__(self):
+		return iter(vars(self))
+
 	def __len__(self):
 		return len(vars(self))
 

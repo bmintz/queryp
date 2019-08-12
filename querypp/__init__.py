@@ -7,7 +7,7 @@ from .utils import AttrDict
 
 __version__ = '0.0.2'
 
-ParamNode = collections.namedtuple('ParamNode', 'name tree')
+BlockNode = collections.namedtuple('blockNode', 'name tree')
 
 class QuerySyntaxError(Exception):
 	pass
@@ -16,15 +16,15 @@ class QuerySyntaxError(Exception):
 class Query:
 	"""A pre-processed SQL query.
 
-	Queries consist of plain text with parameter comments as follows:
-	-	A parameter block consists of a line -- :param <param name> followed by 0 or more lines of text
-		followed by a line consisting of -- :endparam. Consecutive whitespace is ignored.
-	-	A parameter line consists of optional text, followed by -- :param <param name> <param content>
-	Parameter names may be used more than once.
+	Queries consist of plain text with "block" comments as follows:
+	-	A block consists of a line -- :block <block name> followed by 0 or more lines of text
+		followed by a line consisting of -- :endblock. Consecutive whitespace is ignored.
+	-	An inline blick consists of optional text, followed by -- :block <block name> <block content>
+	Block names may be used more than once.
 
-	Calling a query object as a function with names of parameters will return query text
-	that has only those parameters and no others.
-	Nested parameters are supported: including a parameter will not include nested parameters unless also requested.
+	Calling a query object as a function with names of blocks will return query text
+	that has only those blocks and no others.
+	Nested blocks are supported: including a block will not include nested blocks unless also requested.
 
 	Usage:
 	-	Query(text)
@@ -45,16 +45,16 @@ class Query:
 		self.name = name
 		self.text = self._replace_inline_syntax(text)
 		self.tree = self._parse(self.text.splitlines())
-		self.params = frozenset(self._extract_params(self.tree))
+		self.blocks = frozenset(self._extract_blocks(self.tree))
 
 	@staticmethod
 	def _replace_inline_syntax(text):
-		"""convert inline syntax (e.g. "abc -- :param foo def") with multiline syntax"""
+		"""convert inline syntax (e.g. "abc -- :block foo def") with multiline syntax"""
 		out = io.StringIO()
 		for line in text.splitlines(keepends=True):
 			m = re.search(
 				r'(.*)'
-				r'\s*(?P<tag>--\s*?:param\s+?\S+?)'
+				r'\s*(?P<tag>--\s*?:block\s+?\S+?)'
 				r'\s+(?P<content>\S.*)',
 				line)
 			if not m:
@@ -64,7 +64,7 @@ class Query:
 			for group in m.groups():
 				out.write(group)
 				out.write('\n')
-			out.write('-- :endparam\n')
+			out.write('-- :endblock\n')
 
 		return out.getvalue()
 
@@ -76,55 +76,55 @@ class Query:
 		depth = 0
 		for line in lines:
 			m = re.search(
-				r'--\s*?:(?P<end>end)??param'  # "-- :param" or "-- :endparam"
-				r'\s*(?P<name>\S+)?',  # "-- :param user_id"
+				r'--\s*?:(?P<end>end)??block'  # "-- :block" or "-- :endblock"
+				r'\s*(?P<name>\S+)?',  # "-- :block user_id"
 				line)
 
 			if depth < 0 or not depth and m and m.group('end'):
-				raise QuerySyntaxError('endparam found but not in a param', line)
+				raise QuerySyntaxError('endblock found but not in a block', line)
 
 			if depth:
-				name, buffer, depth = cls._parse_param_line(ast, name, buffer, depth, m, line)
-			elif m and m.group('name'):  # start of param
+				name, buffer, depth = cls._parse_block_line(ast, name, buffer, depth, m, line)
+			elif m and m.group('name'):  # start of block
 				depth += 1  # this depth += 1 is duplicated so that depth is incremented regardless of current depth
 				name = m.group('name')
 				buffer.append(line)
-			else:  # top level line (outside of a param)
+			else:  # top level line (outside of a block)
 				ast.append(line)
 
 		if depth:
 			# pylint: disable=undefined-loop-variable  # depth > 0 only if the loop ran
-			raise QuerySyntaxError('EOF seen but there were params open', line, name)
+			raise QuerySyntaxError('EOF seen but there were blocks open', line, name)
 
 		return ast
 
 	# pylint: disable=too-many-arguments
 	@classmethod
-	def _parse_param_line(cls, ast, name, buffer, depth, m, line):
+	def _parse_block_line(cls, ast, name, buffer, depth, m, line):
 		buffer.append(line)
 		if m and m.group('end'):
 			depth -= 1
 			if not depth:
-				# we've gathered all the lines for this param, so it's time to parse them
+				# we've gathered all the lines for this block, so it's time to parse them
 				# don't send the tags to the recursive call or it'll try to parse them again
 				without_tags = buffer[1:-1]
 				ast.append((name, [buffer[0]] + cls._parse(without_tags) + [buffer[-1]]))
 				name, buffer = None, []
-		elif m and m.group('name'):  # start of param
+		elif m and m.group('name'):  # start of block
 			depth += 1
 
 		return name, buffer, depth
 
-	def __call__(self, *params: str):
-		"""return the query as text, including the given params and no others"""
+	def __call__(self, *blocks: str):
+		"""return the query as text, including the given blocks and no others"""
 
-		for param in params:
-			if not isinstance(param, str):
-				raise TypeError('parameter name must be a string', repr(param))
-			if param not in self.params:
-				raise ValueError('param not valid', param)
+		for block in blocks:
+			if not isinstance(block, str):
+				raise TypeError('block name must be a string', block)
+			if block not in self.blocks:
+				raise ValueError('block name not valid', block)
 
-		params = frozenset(params)
+		blocks = frozenset(blocks)
 
 		def gen(tree):
 			for node in tree:
@@ -132,21 +132,21 @@ class Query:
 					yield node
 					continue
 
-				param, tree = node
-				if param in params:
+				block, tree = node
+				if block in blocks:
 					yield from gen(tree)
 
 		return '\n'.join(gen(self.tree))
 
 	@classmethod
-	def _extract_params(cls, tree):
+	def _extract_blocks(cls, tree):
 		for node in tree:
 			if type(node) is str:
 				continue
 
-			param, tree = node
-			yield param
-			yield from cls._extract_params(tree)
+			block, tree = node
+			yield block
+			yield from cls._extract_blocks(tree)
 
 	def __repr__(self):
 		shortened = textwrap.shorten('\n'.join(self.text.splitlines()[1:]), 50)

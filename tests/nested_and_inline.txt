@@ -1,19 +1,19 @@
 a
--- :param foo
+-- :block foo
 	b
-	-- :param bar
+	-- :block bar
 		c
-	-- :endparam
+	-- :endblock
 	d
-	-- :param foo
+	-- :block foo
 		e
-	-- :endparam
+	-- :endblock
 	f
--- :endparam
+-- :endblock
 g
-h -- :param baz i
--- :param foo
+h -- :block baz i
+-- :block foo
 j
 k
--- :endparam
+-- :endblock
 l

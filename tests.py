@@ -12,8 +12,8 @@ if sys.version_info < (3, 6):
 	# py 3.5 does not support opening Paths
 	open = lambda file, **kwargs: builtins.open(str(file), **kwargs)  # pylint: disable=invalid-name
 
-def test_no_params():
-	with open(TESTS_DIR / 'no_params.txt') as f:
+def test_no_blocks():
+	with open(TESTS_DIR / 'no_blocks.txt') as f:
 		text = f.read()
 	assert text == Query(text).text
 
@@ -21,34 +21,34 @@ def test_nested():
 	with open(TESTS_DIR / 'nested' / 'query.txt') as f:
 		text = f.read().strip()
 
-	params = {'foo', 'bar'}
+	blocks = {'foo', 'bar'}
 
 	q = Query(text)
-	assert q(*params).strip() == text
+	assert q(*blocks).strip() == text
 
-	assert set(q.params) == params
+	assert set(q.blocks) == blocks
 
 	cases = []
-	for param in params:
-		with open(TESTS_DIR / 'nested' / 'expected_{}.txt'.format(param)) as f:
-			cases.append((param, f.read().strip()))
+	for block in blocks:
+		with open(TESTS_DIR / 'nested' / 'expected_{}.txt'.format(block)) as f:
+			cases.append((block, f.read().strip()))
 
-	for param, expected in cases:
-		print(param)  # in case one fails we wanna see which one
-		assert q(param).strip() == expected
+	for block, expected in cases:
+		print(block)  # in case one fails we wanna see which one
+		assert q(block).strip() == expected
 
 def test_invalid_syntax():
-	with pytest.raises(QuerySyntaxError, match='endparam found but not in a param'):
-		Query('-- :endparam')
+	with pytest.raises(QuerySyntaxError, match='endblock found but not in a block'):
+		Query('-- :endblock')
 
-	with pytest.raises(QuerySyntaxError, match='EOF seen but there were params open'):
-		Query('-- :param foo')
-		Query('-- :param foo\n--:param bar\n-- :endparam')
+	with pytest.raises(QuerySyntaxError, match='EOF seen but there were blocks open'):
+		Query('-- :block foo')
+		Query('-- :block foo\n--:block bar\n-- :endblock')
 
 def test_inline():
-	q = Query('-- :param username WHERE username = $1')
+	q = Query('-- :block username WHERE username = $1')
 	assert not q().strip()
-	assert len(q.params) == 1
+	assert len(q.blocks) == 1
 	assert 'WHERE username = $1' in q('username').splitlines()
 
 # pylint: disable=no-member
@@ -86,7 +86,7 @@ def test_arg_parsing():
 	with pytest.raises(TypeError):
 		Query('a', 'b', 'c')
 
-def test_param_arg_validation():
+def test_block_arg_validation():
 	with open(TESTS_DIR / 'nested' / 'query.txt') as f:
 		text = f.read()
 
