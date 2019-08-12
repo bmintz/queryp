@@ -5,9 +5,7 @@ import textwrap
 
 from .utils import AttrDict
 
-__version__ = '0.0.2'
-
-BlockNode = collections.namedtuple('blockNode', 'name tree')
+__version__ = '0.0.3'
 
 class QuerySyntaxError(Exception):
 	pass
