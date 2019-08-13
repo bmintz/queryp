@@ -3,12 +3,16 @@ language: python
 python:
   - 3.6
   - 3.7
+  - 3.8-dev
 jobs:
   include:
     - python: 3.5
       dist: xenial
+install:
+  # astroid stable does not support 3.8 positional-only args syntax,
+  # which causes pylint to fail
+  - pip install coveralls isort pylint pytest pytest-cov git+https://github.com/PyCQA/astroid.git
 script:
-  - pip install coveralls isort pylint pytest pytest-cov
   - pytest tests.py --cov querypp --cov-report term-missing:skip-covered --cov-branch
   - pylint querypp
   - isort . --check-only --recursive
