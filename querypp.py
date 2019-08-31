@@ -1,6 +1,7 @@
 __version__ = '0.1.0'
 
 import io
+import inspect
 import os.path
 import re
 from pathlib import Path
@@ -87,7 +88,7 @@ class QueryEnvironment(jinja2.Environment):
 	@staticmethod
 	def _wrap_module(mod):
 		for name, val in vars(mod).items():
-			if not callable(val):
+			if not callable(val) or inspect.isfunction(val) or val.arguments != ('__blocks__',):
 				continue
 
 			def wrapped(*blocks, __macro=val):
