@@ -21,7 +21,7 @@ FROM users
 -- :endquery
 ```
 
-A Query object can be called:
+A Query template can be called:
   - with no block names to return the query without any blocks
   - with one or more block names to return the query with only those block names.
 
@@ -30,6 +30,14 @@ In this case, `q('profiles', 'user_id')` would return the query with the `login_
 Additionally, any [jinja2 templating features](https://jinja.readthedocs.io/en/2.10.x/templates/),
 such as variables and macro functions, can be used, using either the line syntax (e.g. `-- :include 'foo.sql'`)
 or the block syntax (e.g. `{% if x == 1 %}`).
+
+## Usage
+
+```
+env = querypp.QueryEnvironment('sql/')
+queries = env.get_template('queries.sql')  # opens sql/queries.sql
+db.execute(queries.users('login_history', 'user_id'), user_id)
+```
 
 ## Motivation
 
