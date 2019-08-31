@@ -87,7 +87,6 @@ class QueryEnvironment(jinja2.Environment):
 
 		for name, val in vars(mod).items():
 			if not callable(val):
-				vars(mod)[name] = val
 				continue
 
 			def wrapped(*blocks, __macro=val):
