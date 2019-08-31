@@ -4,7 +4,7 @@ import re
 
 from setuptools import setup
 
-with open('querypp/__init__.py') as f:
+with open('querypp.py') as f:
 	version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
 
 if not version:
@@ -27,7 +27,11 @@ setup(
 	author_email='bmintz@protonmail.com',
 	url='https://github.com/bmintz/querypp',
 
-	packages=['querypp'],
+	py_modules=['querypp'],
+
+	install_requires=[
+		'jinja2>=2.10.1,<3.0.0',
+	],
 
 	extras_require={
 		'test': [

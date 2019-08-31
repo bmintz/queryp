@@ -1,9 +1,0 @@
--- :name a
-foo
-bar
-baz
-
--- :name b
-quux
-garply
-waldo
