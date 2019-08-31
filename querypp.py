@@ -31,15 +31,13 @@ class QueryExtension(ext.Extension):
 		name = parser.parse_assign_target(name_only=True).name
 		body = parser.parse_statements(['name:endqblock'], drop_needle=True)
 		return nodes.If(
-			nodes.Compare(  # test
+			nodes.Compare(  # name in __blocks__
 				nodes.Const(name),
 				[nodes.Operand('in', nodes.Name('__blocks__', 'load'))]),
 			body,
 			[],  # elif_
 			[]  # orelse
 		).set_lineno(lineno)
-
-query_ext = QueryExtension
 
 class QueryLoader(jinja2.BaseLoader):
 	def __init__(self, path):
@@ -80,7 +78,8 @@ class QueryEnvironment(jinja2.Environment):
 		super().__init__(
 			loader=QueryLoader(base_path),
 			extensions=[QueryExtension] + kwargs.get('extensions', []),
-			line_statement_prefix='-- :', **kwargs)
+			line_statement_prefix='-- :',
+			**kwargs)
 
 	def get_template(self, name, *args, **kwargs):
 		return self._wrap_module(super().get_template(name, *args, **kwargs).module)
