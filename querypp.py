@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+__version__ = '0.1.0'
 
 import io
 import os.path
@@ -9,7 +9,9 @@ import jinja2
 from jinja2 import ext
 from jinja2 import nodes
 
-__version__ = '0.1.0'
+class AttrDict:
+	def __init__(self, *args, **kwargs):
+		vars(self).update(dict(*args, **kwargs))
 
 class QueryExtension(ext.Extension):
 	tags = {'query', 'qblock'}
