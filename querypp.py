@@ -82,11 +82,10 @@ class QueryEnvironment(jinja2.Environment):
 			line_statement_prefix='-- :', **kwargs)
 
 	def get_template(self, name, *args, **kwargs):
-		return super().get_template(name, *args, **kwargs).module
+		return self._wrap_module(super().get_template(name, *args, **kwargs).module)
 
-	def make_module(self, *args, **kwargs):
-		mod = super().make_module(*args, **kwargs)
-
+	@staticmethod
+	def _wrap_module(mod):
 		for name, val in vars(mod).items():
 			if not callable(val):
 				continue
