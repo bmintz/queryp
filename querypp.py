@@ -1,4 +1,4 @@
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 import io
 import inspect
@@ -69,7 +69,7 @@ class QueryLoader(jinja2.BaseLoader):
 			for group in m.groups():
 				out.write(group)
 				out.write('\n')
-			out.write('-- :endblock\n')
+			out.write('-- :endqblock\n')
 
 		return out.getvalue()
 
