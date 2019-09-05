@@ -17,7 +17,7 @@ setup(
 	name='querypp',
 	version=version,
 
-	description='preprocesses SQL queries to make them modular',
+	description='SQL query templating shorthand',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
 
@@ -33,17 +33,8 @@ setup(
 		'jinja2>=2.10.1,<3.0.0',
 	],
 
-	extras_require={
-		'test': [
-			'isort',
-			'pylint',
-			'pytest',
-			'pytest-cov',
-		],
-	},
-
 	classifiers=[
-		'Topic :: Software Development :: Pre-processors',
+		'Topic :: Software Development',
 		'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
 
 		'Programming Language :: Python :: 3 :: Only',
