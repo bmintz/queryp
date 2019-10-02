@@ -1,5 +1,15 @@
 # querypp
 
+## Deprecation Notice
+
+querypp has been deprecated in favor of vanilla jinja2. After porting it to jinja2, I realized that none of querypp
+was actually necessary. [Migrating docs here](https://github.com/iomintz/querypp/blob/master/MIGRATING.md).
+
+[v0.0.3](https://github.com/iomintz/querypp/tree/v0.0.3) is the last version that doesn't use jinja2, in case
+you want a more lightweight version.
+
+-------------------------------------------------------------------------------------------------------------
+
 querypp is a SQL query[1] templating system based on [jinja2](https://palletsprojects.com/p/jinja/).
 
 [1]: Although it is trivially adapted to other languages, as the only SQL-specific assumption is the line comment

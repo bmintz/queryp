@@ -1,14 +1,19 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import io
 import inspect
 import os.path
 import re
+import warnings
 from pathlib import Path
 
 import jinja2
 from jinja2 import ext
 from jinja2 import nodes
+
+warnings.warn(DeprecationWarning(
+	'querypp is deprecated in favor of vanilla jinja2. '
+	'See https://github.com/iomintz/querypp/blob/master/MIGRATING.md for details.'))
 
 class AttrDict:
 	def __init__(self, *args, **kwargs):
